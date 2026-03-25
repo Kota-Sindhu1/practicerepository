@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Service Provider Registration</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #f9f9f9;
+    }
+
+    select {
+      background: #fff;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: #007bff;
+      outline: none;
+      background: #fff;
+    }
+
+    .error {
+      color: red;
+      font-size: 0.9em;
+      margin-top: -15px;
+      margin-bottom: 10px;
+      display: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #007bff;
+      border: none;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #aaa;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Service Provider Registration</h2>
+
+    <form id="registrationForm" enctype="multipart/form-data" novalidate>
+      <label for="fullname">Full Name:</label>
+      <input type="text" id="fullname" name="fullname" required />
+
+      <label for="phone">Phone Number:</label>
+      <input type="tel" id="phone" name="phone" placeholder="10-digit number" required />
+      <div id="phoneError" class="error">Please enter a valid 10-digit phone number.</div>
+      
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location" placeholder="Enter your location"/>
+      <div id="location error" class="error">Please enter you location.</div>
+      
+
+      <label for="photo">Upload Photo:</label>
+      <input type="file" id="photo" name="photo" accept="image/*" required />
+
+      <label for="certificate">Upload Certificate:</label>
+      <input type="file" id="certificate" name="certificate" accept=".pdf,image/*" required />
+
+      <label for="service">Select Service:</label>
+      <select id="service" name="service" required>
+        <option value="">-- Select a Service --</option>
+        <option value="plumber">Plumber</option>
+        <option value="tutor">Tutor</option>
+        <option value="electrician">Electrician</option>
+        <option value="cook">Cook</option>
+        <option value="driver">driver</option>
+        <option value="painter">painter</option>
+        <option value="carpentar">carpentar</option>
+        <option value="fitnesstrainer">fitnesstrainer</option>
+        <option value="other">fitnesstrainer</option>
+      </select>
+
+      <button type="submit" id="registerBtn" disabled>Register</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('registrationForm');
+    const registerBtn = document.getElementById('registerBtn');
+    const phoneInput = document.getElementById('phone');
+    const phoneError = document.getElementById('phoneError');
+
+    function validatePhone() {
+      const pattern = /^\d{10}$/;
+      const isValid = pattern.test(phoneInput.value.trim());
+      phoneError.style.display = isValid ? 'none' : 'block';
+      return isValid;
+    }
+
+    function validateForm() {
+      const fullname = document.getElementById('fullname').value.trim();
+      const phoneValid = validatePhone();
+      const photo = document.getElementById('photo').files.length > 0;
+      const certificate = document.getElementById('certificate').files.length > 0;
+      const service = document.getElementById('service').value;
+
+      registerBtn.disabled = !(fullname && phoneValid && photo && certificate && service);
+    }
+
+    form.addEventListener('input', validateForm);
+    form.addEventListener('change', validateForm);
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (registerBtn.disabled) return;
+
+      const fullname = document.getElementById('fullname').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const service = document.getElementById('service').value;
+      const photoFile = document.getElementById('photo').files[0];
+      const certificateFile = document.getElementById('certificate').files[0];
+
+      const readerPhoto = new FileReader();
+      const readerCert = new FileReader();
+
+      readerPhoto.onload = function () {
+        const photoData = readerPhoto.result;
+
+        readerCert.onload = function () {
+          const certificateData = readerCert.result;
+
+          const provider = {
+            fullname,
+            phone,
+            service,
+            photoData,
+            certificateData
+          };
+
+          let providers = JSON.parse(localStorage.getItem('serviceProviders')) || [];
+          providers.push(provider);
+          localStorage.setItem('serviceProviders', JSON.stringify(providers));
+
+          alert('Registration successful!');
+          form.reset();
+          registerBtn.disabled = true;
+        };
+
+        readerCert.readAsDataURL(certificateFile);
+      };
+
+      readerPhoto.readAsDataURL(photoFile);
+    });
+  </script>
+
+</body>
+</html>
+
